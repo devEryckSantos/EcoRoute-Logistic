@@ -1,4 +1,6 @@
 using EcoRouteLogisticAPI.Infrastructure.Data;
+using EcoRouteLogisticAPI.Infrastructure.Repositories;
+using EcoRouteLogisticAPI.Application.Services;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 
@@ -9,6 +11,8 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllers();
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
+builder.Services.AddScoped<IDrivreRepository, DriverRepository>();
+builder.Services.AddScoped<DriverService>();
 
 builder.Services.AddDbContext<EcoRouteDbContext>(options =>
 {

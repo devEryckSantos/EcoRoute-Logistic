@@ -1,7 +1,6 @@
-﻿using EcoRouteLogisticAPI.Domain.Entities;
-using EcoRouteLogisticAPI.Infrastructure.Data;
+﻿using EcoRouteLogisticAPI.Application.Services;
+using EcoRouteLogisticAPI.Domain.Entities;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 
 namespace EcoRouteLogisticAPI.Api.Controllers
 {
@@ -9,74 +8,48 @@ namespace EcoRouteLogisticAPI.Api.Controllers
     [ApiController]
     public class DriverController : ControllerBase
     {
-        private readonly EcoRouteDbContext _ecoRouteDbContext;
+        private readonly DriverService _driverService;
 
-        public DriverController(EcoRouteDbContext ecoRouteDbContext)
+        public DriverController(DriverService driverService)
         {
-            _ecoRouteDbContext = ecoRouteDbContext;
+            _driverService = driverService;
         }
 
         [HttpPost]
-        public async Task<ActionResult<Driver>> CreateDriver([FromBody] Driver driver)
+        public async Task<ActionResult> CreateDriver([FromBody] Driver driver)
         {
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
 
-            _ecoRouteDbContext.Drivers.Add(driver);
-            await _ecoRouteDbContext.SaveChangesAsync();
-
+            await _driverService.CreateDriverAsync(driver);
             return CreatedAtAction(nameof(GetDriverById), new { id = driver.Id }, driver);
         }
 
         [HttpGet]
         public async Task<ActionResult<List<Driver>>> GetDrivers()
         {
-            var drivers = await _ecoRouteDbContext.Drivers.ToListAsync();
+            var drivers = await _driverService.GetAllDriversAsync();
             return Ok(drivers);
         }
 
-        [HttpGet]
-        [Route("{id}")]
+        [HttpGet("{id}")]
         public async Task<ActionResult<Driver>> GetDriverById (Guid id)
         {
-            var driver = await _ecoRouteDbContext.Drivers.FindAsync(id);
-
-            if (driver == null)
-                return NotFound("Driver not found.");
-
+            var driver = await _driverService.GetDriverByIdAsync(id);
             return Ok(driver);
         }
 
-        [HttpPut]
-        [Route("{id}")]
+        [HttpPut("{id}")]
         public async Task<IActionResult> UpdateDriverById(Guid id, [FromBody] Driver driver)
         {
-            var driverToUpdate = await _ecoRouteDbContext.Drivers.FindAsync(id);
-
-            if (driverToUpdate == null)
-                return NotFound("Driver not found.");
-
-            driverToUpdate.Name = driver.Name;
-            driverToUpdate.VehiclePlate = driver.VehiclePlate;
-            driverToUpdate.IsActive = driver.IsActive;
-
-            await _ecoRouteDbContext.SaveChangesAsync();
-
+            await _driverService.UpdateDriverAsync(id, driver);
             return NoContent();
         }
 
-        [HttpDelete]
-        [Route("{id}")]
+        [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteDriverById (Guid id)
         {
-            var driver = await _ecoRouteDbContext.Drivers.FindAsync(id);
-
-            if (driver == null)
-                return NotFound("Driver not found.");
-
-            _ecoRouteDbContext.Drivers.Remove(driver);
-            _ecoRouteDbContext.SaveChanges();
-
+            await _driverService.DeleteDriverAsync(id);
             return NoContent();
         }
 
